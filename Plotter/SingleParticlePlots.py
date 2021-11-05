@@ -16,12 +16,12 @@ def plot_cbar(resultDir_dic, xaxis):
     matfile = osp.join(resultDir_dic["sim1"], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
     config = Config.from_dicts(resultDir_dic["sim1"])
-    
+
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 
     print(Npart_c)
-    H = Npart_c * 4 
+    H = Npart_c * 4
     if H > 25:
         H = 25
     L = Nvol_c * 3
@@ -29,8 +29,8 @@ def plot_cbar(resultDir_dic, xaxis):
         L = 20
 
 
-    fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H))
-    
+    fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H), squeeze=False)
+
     for i in resultDir_dic.values():
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
@@ -54,33 +54,22 @@ def plot_cbar(resultDir_dic, xaxis):
             for j in range(Npart_c):
                 partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
                 cbar = sim_output[partStr][0]
-            
-                if Npart_c == 1:
-                    ax[k].plot(xax, cbar, label='cbar')
-                    ax[k].set_ylabel('Li')
-                    ax[k].set_xlabel(xlabel)
-                    ax[k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
-                elif Nvol_c == 1:
-                    ax[j].plot(xax, cbar, label='cbar')
-                    ax[j].set_ylabel('Li')
-                    ax[j].set_xlabel(xlabel)
-                    ax[j].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
-                else: 
-                    ax[j,k].plot(xax, cbar, label='cbar')
-                    ax[j,k].set_ylabel('Li')
-                    ax[j,k].set_xlabel(xlabel)
-                    ax[j,k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
+
+                ax[j,k].plot(xax, cbar, label='cbar')
+                ax[j,k].set_ylabel('Li')
+                ax[j,k].set_xlabel(xlabel)
+                ax[j,k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
 
     return sim_output
-    #the idea is to plot c_barLine of multiples results and also be able to zoom 
+    #the idea is to plot c_barLine of multiples results and also be able to zoom
     #to specific volumes or specifi times
 
-    #in this scritp there is also the possibility to select a time range and do the 
-    #average of the various c_barLine of the particles distinguishing them between 
+    #in this scritp there is also the possibility to select a time range and do the
+    #average of the various c_barLine of the particles distinguishing them between
     # "activate" particles (which are charging) and "not active" ones
 
     #it's certainly better to create different functions and put them togather
-    
+
 def plot_dcbardt(resultDir_dic, xaxis):
     matfile = osp.join(resultDir_dic["sim1"], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
@@ -90,7 +79,7 @@ def plot_dcbardt(resultDir_dic, xaxis):
     Npart_c = config["Npart"]['c']
 
     print(Npart_c)
-    H = Npart_c * 3 
+    H = Npart_c * 3
     if H > 20:
         H = 20
     L = Nvol_c * 3
@@ -99,7 +88,7 @@ def plot_dcbardt(resultDir_dic, xaxis):
 
 
     fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H))
-    
+
     for i in resultDir_dic.values():
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
@@ -119,12 +108,12 @@ def plot_dcbardt(resultDir_dic, xaxis):
             xax = times
             xlabel = 'time'
 
-        
+
         for k in range(Nvol_c):
             for j in range(Npart_c):
                 partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_dcbardt'
                 dcbardt = sim_output[partStr][0]
-            
+
                 if Npart_c == 1:
                     ax[k].plot(xax, dcbardt, label='dcbardt')
                     ax[k].set_ylabel('dLi/dt')
@@ -135,7 +124,7 @@ def plot_dcbardt(resultDir_dic, xaxis):
                     ax[j].set_ylabel('dLi/dt')
                     ax[j].set_xlabel(xlabel)
                     ax[j].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
-                else: 
+                else:
                     ax[j,k].plot(xax, dcbardt, label='dcbardt')
                     ax[j,k].set_ylabel('dLi/dt')
                     ax[j,k].set_xlabel(xlabel)
@@ -145,27 +134,27 @@ def plot_dcbardt(resultDir_dic, xaxis):
 
 def plot_mubar(resultDir_dic, xaxis):
 
-    config = Config.from_dicts(resultDir_dic['sim1'])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 
-    H = Npart_c * 3 
+    H = Npart_c * 3
     if H > 20:
         H = 20
     L = 1 * 3
     if L > 20:
         L = 20
 
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4)) 
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4))
     for i in resultDir_dic.values():
         resultDir = i
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
         td = config["t_ref"]
         tsteps = config["tsteps"]
-        
+
         #times of the 0,0 particles are the same for all the particles
-        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times 
+        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times
         ffvec = sim_output['ffrac_c'][0]
         if xaxis == 'time':
             xax = times
@@ -181,7 +170,7 @@ def plot_mubar(resultDir_dic, xaxis):
 
         Nvol_c = config["Nvol"]['c']
         Npart_c = config["Npart"]['c']
-        
+
         tottimesteps = len(times)-1
 
         for k in range(Nvol_c):
@@ -192,7 +181,7 @@ def plot_mubar(resultDir_dic, xaxis):
 
                 partStr_bar = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
                 cbar = sim_output[partStr_bar][0]
-        
+
                 mubar = np.empty([0])
                 for t in range(tottimesteps+1):
 
@@ -206,11 +195,11 @@ def plot_mubar(resultDir_dic, xaxis):
                     ax = axes[j]
                 else:
                     ax = axes[j,k]
-                
+
                 ax.plot(xax, mubar, label='mubar')
                 ax.set_xlabel(xlabel)
                 ax.set_ylabel('mubar')
-                
+
 
     return sim_output
 
@@ -220,14 +209,14 @@ def plot_mubar_vs_cbar(resultDir_dic):
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 
-    H = Npart_c * 3 
+    H = Npart_c * 3
     if H > 20:
         H = 20
     L = 1 * 3
     if L > 20:
         L = 20
 
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4)) 
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4))
     for i in resultDir_dic.values():
         resultDir = i
         matfile = osp.join(i, 'output_data.mat')
@@ -235,12 +224,12 @@ def plot_mubar_vs_cbar(resultDir_dic):
         td = config["t_ref"]
 
         #times of the 0,0 particles are the same for all the particles
-        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times 
+        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times
         config = Config.from_dicts(i)
 
         Nvol_c = config["Nvol"]['c']
         Npart_c = config["Npart"]['c']
-        
+
         tottimesteps = len(times)-1
 
         for k in range(Nvol_c):
@@ -251,7 +240,7 @@ def plot_mubar_vs_cbar(resultDir_dic):
 
                 partStr_bar = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
                 cbar = sim_output[partStr_bar][0]
-        
+
                 mubar = np.empty([0])
                 for t in range(tottimesteps+1):
 
@@ -265,28 +254,28 @@ def plot_mubar_vs_cbar(resultDir_dic):
                     ax = axes[j]
                 else:
                     ax = axes[j,k]
-                
+
                 ax.plot(cbar, mubar, label='mubar')
                 ax.set_xlabel('cbar')
                 ax.set_ylabel('mubar')
                 ax.set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
-                
+
 
     return sim_output
 
 def plot_mubar_singlePart(resultDir_dic, vol, part):
 
-    config = Config.from_dicts(resultDir_dic['sim1'])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
 
-    fig, axes = plt.subplots(1,2, sharey=True, figsize=(10, 4)) 
+    fig, axes = plt.subplots(1,2, sharey=True, figsize=(10, 4))
     for i in resultDir_dic.values():
         resultDir = i
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
         td = config["t_ref"]
-        
+
         #times of the 0,0 particles are the same for all the particles
-        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times 
+        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times
         config = Config.from_dicts(i)
 
         tottimesteps = len(times)-1
@@ -296,7 +285,7 @@ def plot_mubar_singlePart(resultDir_dic, vol, part):
 
         partStr_bar = 'partTrodecvol'+str(vol)+'part'+str(part)+'_cbar'
         cbar = sim_output[partStr_bar][0]
-        
+
         mubar = np.empty([0])
         for t in range(tottimesteps+1):
 
@@ -304,17 +293,17 @@ def plot_mubar_singlePart(resultDir_dic, vol, part):
             cavg = cbar[t]
             mu = LiFePO4(conc, cavg, resultDir)
             mubar = np.append(mubar, np.sum(mu)/len(mu))
-        
-        ax = axes[0]       
+
+        ax = axes[0]
         ax.plot(cbar, mubar, label='mubar')
         ax.set_xlabel('cbar')
         ax.set_ylabel('mubar')
         ax.set_title('volume: ' +str(vol+1)+' particle: '+str(part+1))
 
-        ax = axes[1]       
+        ax = axes[1]
         ax.plot(times, mubar, label='mubar')
         ax.set_xlabel('time')
         ax.set_ylabel('mubar')
-                
+
 
     return sim_output
