@@ -87,7 +87,7 @@ def plot_dcbardt(resultDir_dic, xaxis):
         L = 20
 
 
-    fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H))
+    fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H),squeeze=False )
 
     for i in resultDir_dic.values():
         matfile = osp.join(i, 'output_data.mat')
@@ -145,7 +145,7 @@ def plot_mubar(resultDir_dic, xaxis):
     if L > 20:
         L = 20
 
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4))
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10),  squeeze=False)
     for i in resultDir_dic.values():
         resultDir = i
         matfile = osp.join(i, 'output_data.mat')
