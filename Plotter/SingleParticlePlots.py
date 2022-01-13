@@ -13,7 +13,7 @@ import mpet.utils as utils
 from mpet.config import Config, constants
 from muFunc import *
 
-def plot_cVolume(resultDir_dic,L_c):
+def plot_cVolume(resultDir_dic,L_c, SoC):
     matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
     config = Config.from_dicts(list(resultDir_dic.values())[0])
@@ -24,12 +24,19 @@ def plot_cVolume(resultDir_dic,L_c):
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
         config = Config.from_dicts(i)
-        td = config["t_ref"]
+        # td = config["t_ref"]
+        ffvec = sim_output['ffrac_c'][0]
         Nvol_c = config["Nvol"]['c']
         Npart_c = config["Npart"]['c']
         # thick = config["L_c"]
         # print(thick)
         thick_vec = np.linspace(L_c,0,num=Nvol_c)
+
+        index = 0
+        for step in ffvec:
+            index = index + 1
+            if step > (SoC-0.05) and step < (SoC+0.05):
+                break
 
 
         # times = sim_output['phi_applied_times'][0]*td
@@ -40,11 +47,11 @@ def plot_cVolume(resultDir_dic,L_c):
             c_vol = np.array([])
             for j in range(Npart_c):
                 partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
-                cbar_final = sim_output[partStr][0][-1]
-                c_vol = np.append(c_vol,cbar_final)
+                cbar_ffrac = sim_output[partStr][0][index]
+                c_vol = np.append(c_vol,cbar_ffrac)
             c_avg_vol = np.average(c_vol)
             c_avg_tot = np.append(c_avg_tot,c_avg_vol)
-        plt.plot(thick_vec,c_avg_tot,label = str(i))
+        plt.plot(thick_vec,c_avg_tot,label = str(i[77:]))
         plt.legend()
             
 

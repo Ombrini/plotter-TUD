@@ -59,7 +59,7 @@ if __name__ == '__main__':
         resultDir_dic[sim] = os.path.join(simulation_folder, sim)
 
 
-     # plot_voltage(resultDir_dic)
+    # plot_voltage(resultDir_dic)
     # plot_c(resultDir_dic, 5, 0)
     # plot_mu(resultDir_dic, 10,0)
     # plot_mubar_vs_cbar(resultDir_dic) #all the mubars vs the cbar of the particle
@@ -68,8 +68,10 @@ if __name__ == '__main__':
     # plot_mubar(resultDir_dic, 'ffrac') #all the mubars vs the cbar of the system
     # plot_cbar(resultDir_dic, 'ffrac')
     # plot_cbar(resultDir_dic, 'time')
-    plot_Crate_singleparticle(resultDir_dic, 'ffrac')
-    # plot_cVolume(resultDir_dic,15)
+    # plot_Crate_singleparticle(resultDir_dic, 'ffrac')
+    plot_cVolume(resultDir_dic,15,0.5)
+    plot_cVolume(resultDir_dic,15,0.1)
+    plot_cVolume(resultDir_dic,15,0.8)
     plt.show()
     # keys(str(resultDir_dic))
     exit()
