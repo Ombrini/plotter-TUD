@@ -39,7 +39,7 @@ import mpet.utils as utils
 from mpet.config import Config, constants
 
 from Voltage import *
-from keys import *
+from plot_utils import *
 from SingleParticlePlots import *
 from TimeEvolution import *
 # from get_values import get_C_rate, get_Nvol_c_and_Npart_c
@@ -58,26 +58,23 @@ if __name__ == '__main__':
     for sim in simulations:
         resultDir_dic[sim] = os.path.join(simulation_folder, sim)
 
+
     # plot_voltage(resultDir_dic)
-    # plot_c(resultDir_dic, 30, 0)
-    plot_mubar_singlePart(resultDir_dic, 0, 0)
+    # plot_c(resultDir_dic, 5, 0)
+    # plot_mu(resultDir_dic, 10,0)
+    # plot_mubar_vs_cbar(resultDir_dic) #all the mubars vs the cbar of the particle
+    # plot_mubar_singlePart(resultDir_dic,0,0)
+    # plot_mubar_singlePart(resultDir_dic,0,0)
+    # plot_mubar(resultDir_dic, 'ffrac') #all the mubars vs the cbar of the system
+    # plot_cbar(resultDir_dic, 'ffrac')
+    # plot_cbar(resultDir_dic, 'time')
+    # plot_Crate_singleparticle(resultDir_dic, 'ffrac')
+    plot_cVolume(resultDir_dic,15,0.5)
+    plot_cVolume(resultDir_dic,15,0.1)
+    plot_cVolume(resultDir_dic,15,0.8)
     plt.show()
+    # keys(str(resultDir_dic))
     exit()
-
-    # here I manually create a dictionary but I need to look into the "os" package
-    # to see how to create it looping into a folder
-    resultDir_dic = {}
-    # resultDir_dic["sim1"] = "history\\30vol_1005"
-    # resultDir_dic["sim2"] = "history\\30vol_105"
-    # resultDir_dic["sim3"] = "history\\20vol_105"
-    # resultDir_dic["sim4"] = "history\\20vol_1005"
-    resultDir_dic["sim1"] = "history/25vol_105"
-    resultDir_dic["sim2"] = "history/25vol_1005"
-    # resultDir_dic["sim3"] = "history\\25vol_105_10m"
-    # resultDir_dic["sim4"] = "history\\25vol_1005_10m"
-    # resultDir_dic["sim5"] = "history\\25vol_105_1m"
-    # resultDir_dic["sim6"] = "history\\25vol_1005_1m"
-
 
     # to test the plotting I created a bunch of differnt simulations with different Crate or
     # C segments and different Number of particles and volumes
@@ -85,21 +82,5 @@ if __name__ == '__main__':
     # of course the plottings that take plots a range of particles and volumes have to be made
     # in a folder in wich the simulations have the same number of particles and volumes
 
-    # plot_voltage(resultDir_dic)
-    plot_c(resultDir_dic, 30, 16)
-    # plot_mu(resultDir_dic, 10, 16)
-    # plot_mubar_vs_cbar(resultDir_dic)
-    # plot_mubar_singlePart(resultDir_dic,16,0)
-    plot_mubar_singlePart(resultDir_dic,22,0)
-    # plot_mubar(resultDir_dic, 'time')
-    # plot_cbar(resultDir_dic, 'time')
-    # plot_dcbardt(resultDir_dic, 'time')
-    plt.show()
 
-    # Nvol_vec, Npart_vec = get_Nvol_c_and_Npart_c("history\\100par_105")
-    # print(Nvol_vec)
 
-    # Crate = get_C_rate("history\\100par_105")
-    # print(Crate)
-
-    # keys("history\\25vol_1005")
