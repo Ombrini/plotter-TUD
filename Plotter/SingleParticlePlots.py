@@ -13,7 +13,7 @@ import mpet.utils as utils
 from mpet.config import Config, constants
 from muFunc import *
 
-def plot_cVolume(resultDir_dic,L_c, SoC):
+def plot_cVolume(resultDir_dic, SoC):
     matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
     config = Config.from_dicts(list(resultDir_dic.values())[0])
@@ -21,6 +21,7 @@ def plot_cVolume(resultDir_dic,L_c, SoC):
     
 
     for i in resultDir_dic.values():
+        L_c = config["L"]["c"]*config['L_ref']*1e6
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
         config = Config.from_dicts(i)
@@ -51,7 +52,9 @@ def plot_cVolume(resultDir_dic,L_c, SoC):
                 c_vol = np.append(c_vol,cbar_ffrac)
             c_avg_vol = np.average(c_vol)
             c_avg_tot = np.append(c_avg_tot,c_avg_vol)
-        plt.plot(thick_vec,c_avg_tot,label = str(i[77:]))
+        plt.plot(thick_vec,c_avg_tot,label = str(i[77:])+' - '+'SoC: '+str(SoC))
+        plt.xlabel('Cathode thickness (um)')
+        plt.ylabel('Normalized concentration')
         plt.legend()
             
 

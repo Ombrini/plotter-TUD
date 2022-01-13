@@ -44,15 +44,17 @@ def elyte_c(resultDir_dic, tval):
         cellsvec = dxc*np.arange(Nvol["c"]) + dxc/2.
         cellsvec_c = dxc*np.arange(Nvol["c"]) + dxc/2.
         cellsvec_c *= config["L_ref"] * Lfac
-        if Nvol["s"]:
-            dxs = config["L"]["s"]/Nvol["s"]
-            dxvec_s = np.array(Nvol["s"] * [dxs])
-            dxvec = np.hstack((dxvec_s, dxvec))
-            poros_s = np.array(Nvol["s"] * [config["poros"]["s"]])
-            porosvec = np.hstack((poros_s, porosvec))
-            cellsvec += config["L"]["s"] / config["L"]["c"]
-            cellsvec_s = dxs*np.arange(Nvol["s"]) + dxs/2.
-            cellsvec = np.hstack((cellsvec_s, cellsvec))
+        if config["have_separator"]:
+            if Nvol["s"]:
+                dxs = config["L"]["s"]/Nvol["s"]
+                dxvec_s = np.array(Nvol["s"] * [dxs])
+                dxvec = np.hstack((dxvec_s, dxvec))
+                poros_s = np.array(Nvol["s"] * [config["poros"]["s"]])
+                porosvec = np.hstack((poros_s, porosvec))
+                cellsvec += config["L"]["s"] / config["L"]["c"]
+                cellsvec_s = dxs*np.arange(Nvol["s"]) + dxs/2.
+                cellsvec = np.hstack((cellsvec_s, cellsvec))
+            cellsvec_s *= config["L_ref"] * Lfac
         if "a" in trodes:
             dxa = config["L"]["a"]/Nvol["a"]
             dxvec_a = np.array(Nvol["a"] * [dxa])
@@ -62,7 +64,7 @@ def elyte_c(resultDir_dic, tval):
             cellsvec += config["L"]["a"] / config["L"]["c"]
             cellsvec_a = dxa*np.arange(Nvol["a"]) + dxa/2.
             cellsvec = np.hstack((cellsvec_a, cellsvec))
-        cellsvec_s *= config["L_ref"] * Lfac
+        
         cellsvec *= config["L_ref"] * Lfac
         facesvec = np.insert(np.cumsum(dxvec), 0, 0.) * config["L_ref"] * Lfac
         
@@ -83,18 +85,19 @@ def elyte_c(resultDir_dic, tval):
         fig, axes = plt.subplots(ncols=2, sharey=True, figsize=(12, 6))
 
         # elyte data elyte
-        key = f'{var}_lyte_s'
-        if var in 'c':
-            data_elyte_s = sim_output[key]* c_ref / 1000.  # select correct elyte volume
-        elif var in 'phi':
-            data_elyte_s = sim_output[key]*(k*Tref/e) - Vstd
-        x_elyte_s = list(range(-np.shape(data_elyte_s)[1],0))
-        # elyte value at timestep chosen to plot interface region volumes
-        if var in 'c':
-            cval_s = data_elyte_s[t]
-        elif var in 'phi':
-            cval_s = data_elyte_s[t]
-        data_elyte_vol_s = sim_output[key][t]  # all volumes at given t
+        if config["have_separator"]:
+            key = f'{var}_lyte_s'
+            if var in 'c':
+                data_elyte_s = sim_output[key]* c_ref / 1000.  # select correct elyte volume
+            elif var in 'phi':
+                data_elyte_s = sim_output[key]*(k*Tref/e) - Vstd
+            x_elyte_s = list(range(-np.shape(data_elyte_s)[1],0))
+            # elyte value at timestep chosen to plot interface region volumes
+            if var in 'c':
+                cval_s = data_elyte_s[t]
+            elif var in 'phi':
+                cval_s = data_elyte_s[t]
+            data_elyte_vol_s = sim_output[key][t]  # all volumes at given t
         
         # elyte data electrode
         key = f'{var}_lyte_{trode}'
@@ -113,7 +116,8 @@ def elyte_c(resultDir_dic, tval):
         # time vs variable
         ax = axes[0]
         ax.plot(times, data_elyte_c)
-        ax.plot(times, data_elyte_s[:,-1], label='elyte_s last volume')
+        if config["have_separator"]:
+            ax.plot(times, data_elyte_s[:,-1], label='elyte_s last volume')
 
         ax.set_xlabel('time')
         ax.set_ylabel(var_long)
@@ -129,11 +133,11 @@ def elyte_c(resultDir_dic, tval):
         
     #     datay = np.hstack((cval_s, cval_c))
     #     ax.plot(cellsvec,datay , label='elyte_s', c='g', marker='o')
-        
-        ax.plot(cellsvec_s[-1]+cellsvec_c,cval_c, marker='o', label='elyte_c')
-        ax.plot(cellsvec_s,cval_s , label='elyte_s', c='g', marker='o')
-        
-        print(cval_s)
+        if config["have_separator"]:
+            ax.plot(cellsvec_s[-1]+cellsvec_c,cval_c, marker='o', label='elyte_c')
+            ax.plot(cellsvec_s,cval_s , label='elyte_s', c='g', marker='o')
+            
+            print(cval_s)
         
         ax.set_xlabel('Battery position [um]')
         ax.legend()
