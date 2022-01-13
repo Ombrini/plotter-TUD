@@ -1,4 +1,5 @@
 import os.path as osp
+from cv2 import threshold
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
@@ -107,7 +108,7 @@ def plot_cbar(resultDir_dic, xaxis):
 
     #it's certainly better to create different functions and put them togather
 
-def plot_Crate_singleparticle(resultDir_dic, xaxis):
+def plot_Crate_singleparticle(resultDir_dic, xaxis, Cthreshold):
     matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
     config = Config.from_dicts(list(resultDir_dic.values())[0])
@@ -159,12 +160,12 @@ def plot_Crate_singleparticle(resultDir_dic, xaxis):
                 active_Crate = np.array([])
                 index = 0
                 for c in crate:
-                    if c > 5:
+                    if c > Cthreshold:
                         active_Crate = np.append(active_Crate,c)
                 avg_Crate = np.average(active_Crate)
                 for c in crate: #find position in x vec when the (de)lithiation start
                     index = index + 1
-                    if c > 5:
+                    if c > Cthreshold:
                         break
                 new_xax = np.linspace(xax[0],xax[-1],num=np.size(active_Crate))
                 avg_Crate_vec = np.array([])
