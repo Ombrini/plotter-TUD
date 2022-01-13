@@ -37,6 +37,7 @@ import mpet.props_am as props_am
 import mpet.utils as utils
 
 from mpet.config import Config, constants
+from elyte import *
 
 from Voltage import *
 from plot_utils import *
@@ -69,9 +70,11 @@ if __name__ == '__main__':
     # plot_cbar(resultDir_dic, 'ffrac')
     # plot_cbar(resultDir_dic, 'time')
     # plot_Crate_singleparticle(resultDir_dic, 'ffrac')
-    plot_cVolume(resultDir_dic,15,0.5)
-    plot_cVolume(resultDir_dic,15,0.1)
-    plot_cVolume(resultDir_dic,15,0.8)
+    # plot_cVolume(resultDir_dic,15,0.5)
+    # plot_cVolume(resultDir_dic,15,0.1)
+    # plot_cVolume(resultDir_dic,15,0.8)
+    elyte_c(resultDir_dic,1)
+
     plt.show()
     # keys(str(resultDir_dic))
     exit()
