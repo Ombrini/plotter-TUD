@@ -12,10 +12,47 @@ import mpet.utils as utils
 from mpet.config import Config, constants
 from muFunc import *
 
-def plot_cbar(resultDir_dic, xaxis):
-    matfile = osp.join(resultDir_dic["sim1"], 'output_data.mat')
+def plot_cVolume(resultDir_dic,L_c):
+    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
-    config = Config.from_dicts(resultDir_dic["sim1"])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
+
+    
+
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        config = Config.from_dicts(i)
+        td = config["t_ref"]
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        # thick = config["L_c"]
+        # print(thick)
+        thick_vec = np.linspace(L_c,0,num=Nvol_c)
+
+
+        # times = sim_output['phi_applied_times'][0]*td
+        # ffvec = sim_output['ffrac_c'][0]
+
+        c_avg_tot = np.array([])
+        for k in range(Nvol_c):
+            c_vol = np.array([])
+            for j in range(Npart_c):
+                partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                cbar_final = sim_output[partStr][0][-1]
+                c_vol = np.append(c_vol,cbar_final)
+            c_avg_vol = np.average(c_vol)
+            c_avg_tot = np.append(c_avg_tot,c_avg_vol)
+        plt.plot(thick_vec,c_avg_tot,label = str(i))
+        plt.legend()
+            
+
+
+
+def plot_cbar(resultDir_dic, xaxis):
+    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
+    sim_output = sio.loadmat(matfile)
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
 
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
@@ -70,10 +107,10 @@ def plot_cbar(resultDir_dic, xaxis):
 
     #it's certainly better to create different functions and put them togather
 
-def plot_dcbardt(resultDir_dic, xaxis):
-    matfile = osp.join(resultDir_dic["sim1"], 'output_data.mat')
+def plot_Crate_singleparticle(resultDir_dic, xaxis):
+    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
-    config = Config.from_dicts(resultDir_dic["sim1"])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
 
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
@@ -87,7 +124,7 @@ def plot_dcbardt(resultDir_dic, xaxis):
         L = 20
 
 
-    fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H),squeeze=False )
+    fig, ax = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(L, H),squeeze=False)
 
     for i in resultDir_dic.values():
         matfile = osp.join(i, 'output_data.mat')
@@ -108,28 +145,34 @@ def plot_dcbardt(resultDir_dic, xaxis):
             xax = times
             xlabel = 'time'
 
-
         for k in range(Nvol_c):
             for j in range(Npart_c):
                 partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_dcbardt'
                 dcbardt = sim_output[partStr][0]
+                crate = dcbardt*3600/td
 
-                if Npart_c == 1:
-                    ax[k].plot(xax, dcbardt, label='dcbardt')
-                    ax[k].set_ylabel('dLi/dt')
-                    ax[k].set_xlabel(xlabel)
-                    ax[k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
-                elif Nvol_c == 1:
-                    ax[j].plot(xax, dcbardt, label='dcbardt')
-                    ax[j].set_ylabel('dLi/dt')
-                    ax[j].set_xlabel(xlabel)
-                    ax[j].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
-                else:
-                    ax[j,k].plot(xax, dcbardt, label='dcbardt')
-                    ax[j,k].set_ylabel('dLi/dt')
-                    ax[j,k].set_xlabel(xlabel)
-                    ax[j,k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
+                ax[j,k].plot(xax, crate, label=str(i))
+                ax[j,k].set_ylabel('C-rate')
+                ax[j,k].set_xlabel(xlabel)
+                ax[j,k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
 
+                active_Crate = np.array([])
+                index = 0
+                for c in crate:
+                    if c > 5:
+                        active_Crate = np.append(active_Crate,c)
+                avg_Crate = np.average(active_Crate)
+                for c in crate: #find position in x vec when the (de)lithiation start
+                    index = index + 1
+                    if c > 5:
+                        break
+                new_xax = np.linspace(xax[0],xax[-1],num=np.size(active_Crate))
+                avg_Crate_vec = np.array([])
+                for g in active_Crate:
+                    avg_Crate_vec = np.append(avg_Crate_vec,avg_Crate)
+                ax[j,k].plot(new_xax, avg_Crate_vec)
+
+            
     return sim_output
 
 def plot_mubar(resultDir_dic, xaxis):
@@ -145,7 +188,7 @@ def plot_mubar(resultDir_dic, xaxis):
     if L > 20:
         L = 20
 
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10),  squeeze=False)
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4),squeeze=False)
     for i in resultDir_dic.values():
         resultDir = i
         matfile = osp.join(i, 'output_data.mat')
@@ -188,13 +231,13 @@ def plot_mubar(resultDir_dic, xaxis):
                     conc = c[t]
                     cavg = cbar[t]
                     mu = LiFePO4(conc, cavg, resultDir)
-                    mubar = np.append(mubar, np.sum(mu)/len(mu))
-                if Npart_c == 1:
-                    ax = axes[k]
-                elif Nvol_c == 1:
-                    ax = axes[j]
-                else:
-                    ax = axes[j,k]
+                    mubar = 0.025*np.append(mubar, np.sum(mu)/len(mu))
+                # if Npart_c == 1:
+                #     ax = axes[k]
+                # elif Nvol_c == 1:
+                #     ax = axes[j]
+                # else:
+                ax = axes[j,k]
 
                 ax.plot(xax, mubar, label='mubar')
                 ax.set_xlabel(xlabel)
@@ -205,7 +248,7 @@ def plot_mubar(resultDir_dic, xaxis):
 
 def plot_mubar_vs_cbar(resultDir_dic):
 
-    config = Config.from_dicts(resultDir_dic['sim1'])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 
@@ -216,7 +259,7 @@ def plot_mubar_vs_cbar(resultDir_dic):
     if L > 20:
         L = 20
 
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4))
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4),squeeze=False)
     for i in resultDir_dic.values():
         resultDir = i
         matfile = osp.join(i, 'output_data.mat')
@@ -247,13 +290,13 @@ def plot_mubar_vs_cbar(resultDir_dic):
                     conc = c[t]
                     cavg = cbar[t]
                     mu = LiFePO4(conc, cavg, resultDir)
-                    mubar = np.append(mubar, np.sum(mu)/len(mu))
-                if Npart_c == 1:
-                    ax = axes[k]
-                elif Nvol_c == 1:
-                    ax = axes[j]
-                else:
-                    ax = axes[j,k]
+                    mubar = 0.025*np.append(mubar, np.sum(mu)/len(mu))
+                # if Npart_c == 1:
+                #     ax = axes[k]
+                # elif Nvol_c == 1:
+                #     ax = axes[j]
+                # else:
+                ax = axes[j,k]
 
                 ax.plot(cbar, mubar, label='mubar')
                 ax.set_xlabel('cbar')
@@ -295,13 +338,13 @@ def plot_mubar_singlePart(resultDir_dic, vol, part):
             mubar = np.append(mubar, np.sum(mu)/len(mu))
 
         ax = axes[0]
-        ax.plot(cbar, mubar, label='mubar')
+        ax.plot(cbar, 0.025*mubar, label='mubar')
         ax.set_xlabel('cbar')
         ax.set_ylabel('mubar')
         ax.set_title('volume: ' +str(vol+1)+' particle: '+str(part+1))
 
         ax = axes[1]
-        ax.plot(times, mubar, label='mubar')
+        ax.plot(times, 0.025*mubar, label='mubar')
         ax.set_xlabel('time')
         ax.set_ylabel('mubar')
 
