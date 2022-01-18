@@ -55,7 +55,16 @@ def plot_cVolume(resultDir_dic, SoC):
         plt.plot(thick_vec,c_avg_tot,label = str(i[77:])+' - '+'SoC: '+str(SoC))
         plt.xlabel('Cathode thickness (um)')
         plt.ylabel('Normalized concentration')
+
+
+        fit = np.poly1d(np.polyfit(thick_vec,c_avg_tot,deg=2),r=False)
+        x_fit = np.linspace(0,L_c,num = 20)
+        y_fit = np.array([])
+        for t in x_fit:
+            y_fit = np.append(y_fit,fit(t))
+        plt.plot(x_fit,y_fit, label = str(i[77:])+' - '+'SoC: '+str(SoC))
         plt.legend()
+
             
 
 

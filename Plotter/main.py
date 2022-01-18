@@ -1,4 +1,3 @@
-# The script is not working properly, some function are just defined and not written
 # the idea is just to show the concepts of the plotting we want
 # we know that the final part of data analysis will be done by ourself, but it's useful to
 # have a tool that fastly permits to expand the base plots and to compare different setups
@@ -60,7 +59,8 @@ if __name__ == '__main__':
         resultDir_dic[sim] = os.path.join(simulation_folder, sim)
 
 
-    # plot_voltage(resultDir_dic)
+    plot_voltage(resultDir_dic)
+    plt.show()
     # plot_c(resultDir_dic, 5, 0)
     # plot_mu(resultDir_dic, 10,0)
     # plot_mubar_vs_cbar(resultDir_dic) #all the mubars vs the cbar of the particle
@@ -70,10 +70,11 @@ if __name__ == '__main__':
     # plot_cbar(resultDir_dic, 'ffrac')
     # plot_cbar(resultDir_dic, 'time')
     # plot_Crate_singleparticle(resultDir_dic, 'ffrac')
-    # plot_cVolume(resultDir_dic,0.5)
+    # plot_cVolume(resultDir_dic,0.49)
     # plot_cVolume(resultDir_dic,0.1)
-    # plot_cVolume(resultDir_dic,0.8)
-    elyte_c(resultDir_dic,100)
+    # plot_cVolume(resultDir_dic,0.9)
+    elyte_c(resultDir_dic,5)
+    elyte_phi(resultDir_dic,5)
 
     plt.show()
     # keys(str(resultDir_dic))
