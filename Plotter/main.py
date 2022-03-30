@@ -22,6 +22,7 @@
 
 
 
+import imp
 import os.path as osp
 import matplotlib
 import matplotlib.pyplot as plt
@@ -45,7 +46,8 @@ from plot_utils import *
 from SingleParticlePlots import *
 from TimeEvolution import *
 
-from OCVproject import *
+from colormaps import *
+from Plot_experiments import *
 # from get_values import get_C_rate, get_Nvol_c_and_Npart_c
 
 
@@ -62,11 +64,23 @@ if __name__ == '__main__':
     for sim in simulations:
         resultDir_dic[sim] = os.path.join(simulation_folder, sim)
 
+    file_name = 'ExportData_PFO_Li_LFP_170220222_1_SEE Rack 2_09_6_20220217165657.txt'
+    mass = 16.4
 
-    # plot_voltage(resultDir_dic)
-    # plot_activeParticles(resultDir_dic)
+    plot_voltage(resultDir_dic)
+    # plot_experiments(file_name, mass)
+    plot_activeParticles(resultDir_dic)
+    # active_max_vs_Crate(resultDir_dic)
     # plt.show()
-    plot_c2D(resultDir_dic,10,0)
+    # active_max_vs_bulk(resultDir_dic)
+    # active_max_vs_thickness(resultDir_dic)
+    # plot_MaxActivePart_vsCrate_and_bulk(resultDir_dic)
+    # plot_MaxActivePart_vsCrate_1Dplot(resultDir_dic)
+    # active_atSoC(resultDir_dic, 50)
+    # active_atSoC(resultDir_dic, 50)
+    # active_atSoC(resultDir_dic, 50)
+    # plt.show()
+    # plot_csld2D(resultDir_dic, save = False, directory= 0)
     # plot_c(resultDir_dic, 10 ,0)
     # plot_mu(resultDir_dic, 10,0)
     # plot_mubar_vs_cbar(resultDir_dic) #all the mubars vs the cbar of the particle
@@ -75,8 +89,8 @@ if __name__ == '__main__':
     # plot_mubar(resultDir_dic, 'ffrac') #all the mubars vs the cbar of the system
     # plot_cbar(resultDir_dic, 'ffrac')
     # plot_cbar(resultDir_dic, 'time')
-    # plot_Crate_singleparticle(resultDir_dic, 'ffrac', 0)
-    # plot_cVolume(resultDir_dic,0.49)
+    # plot_Crate_singleparticle(resultDir_dic, 'ffrac', 0.1)
+    # plot_cVolume(resultDir_dic,0.5)
     # plot_Vmax_vs_Thick(resultDir_dic,'Vvsb')
     # plot_cVolume(resultDir_dic,0.5)
     # plot_cVolume(resultDir_dic,0.9)
@@ -90,75 +104,7 @@ if __name__ == '__main__':
     # C segments and different Number of particles and volumes
 
     # of course the plottings that take plots a range of particles and volumes have to be made
-    # in a folder in wich the simulations have the same number of particles and volumes
-
-    config = Config.from_dicts(list(resultDir_dic.values())[0])
-    Nvol_c = config["Nvol"]['c']
-    Npart_c = config["Npart"]['c']
-
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=False)
-    # fig, im = plt.subplots(1,1, sharey=False)
-    # fig =  plt.figure()
-    norm = matplotlib.colors.Normalize(vmin = 0, vmax = 1)
-    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
-    sim_output = sio.loadmat(matfile)
-    td = config["t_ref"]
-    times = sim_output['phi_applied_times'][0]*td
-    numtimes = np.size(times)
-    ffvec = sim_output['ffrac_c'][0]
-    lines = np.empty((Npart_c, Nvol_c), dtype=object)
-
-    for k in range(Npart_c):
-        for j in range(Nvol_c):
-            partStr = 'partTrodecvol'+str(j)+'part'+str(k)+'_c'
-            # im = axes[k,j]
-            c = sim_output[partStr]
-            # A = [ np.array()]
-            N = np.size(c[0])
-            A = np.ones((int(N/4),N))
-            A[:,:] = c[0]
-            line = axes[k,j].imshow(A, cmap = 'jet', norm = norm, animated = True)
-            lines[k,j] = line
-            # A[:,:] = c[0]
-            # print(A)
-            # # ax = axes[k,j]
-            # ax = axes
-            # im = plt.imshow(A, animated=True)
-
-    def init():
-        A[:,:] = c[50]
-        lines[k,j].set_data(A)
-        return [lines]
-    
-    def animate(t):
-        for k in range(Npart_c):
-            for j in range(Nvol_c):
-                partStr = 'partTrodecvol'+str(j)+'part'+str(k)+'_c'
-                c = sim_output[partStr]
-                N = np.size(c[0])
-                A = np.ones((int(N/2),N))
-                toblit = []
-                # a=im.get_array()
-                # A = im.get_array()
-                A[:,:] = c[t]
-                # print(A)
-                # A[:,:] = np.reshape(c[t],N)
-                # a = A     
-                # lines.clear()
-                # im.contourf(range(N),range(N),A, cmap = 'jet', norm = norm)
-                # im.imshow(A, cmap = 'jet', norm = norm)
-                # print(k, ' ', j )
-                lines[k,j].set_data(A)
-                lines_local = lines.copy()
-                toblit.append(lines_local)
-                # im.set_array(A)S
-        return [lines]
-
-    anim = manim.FuncAnimation(fig, animate,
-                                            frames=numtimes, interval=0.001, repeat = False, init_func= init)
-                        # Writer = writers['ffmeg']
-            # writer = Writer(10)
-            # anim.save("mpet_anim.mp4")
+    # in a folder in wich the simulations have the same number of particles and volume
 
     plt.show()
     exit()

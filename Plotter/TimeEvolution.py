@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as manim
 import numpy as np
+from pandas import interval_range
 import scipy.io as sio
 import os
 
@@ -14,39 +15,33 @@ from muFunc import *
 
 from mpet.config import Config, constants
 
-def plot_csld2D(resultDir_dic, save = False):
+def plot_csld2D(resultDir_dic, save = False, directory = 0):
     config = Config.from_dicts(list(resultDir_dic.values())[0])
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 
-    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=False)
-    # fig, im = plt.subplots(1,1, sharey=False)
-    # fig =  plt.figure()
+    fig, axes = plt.subplots(Npart_c,Nvol_c, figsize=(10, 10))
     norm = matplotlib.colors.Normalize(vmin = 0, vmax = 1)
-    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
+    matfile = osp.join(list(resultDir_dic.values())[directory], 'output_data.mat')
     sim_output = sio.loadmat(matfile)
     td = config["t_ref"]
     times = sim_output['phi_applied_times'][0]*td
     numtimes = np.size(times)
-    ffvec = sim_output['ffrac_c'][0]
     lines = np.empty((Npart_c, Nvol_c), dtype=object)
 
     for k in range(Npart_c):
         for j in range(Nvol_c):
             partStr = 'partTrodecvol'+str(j)+'part'+str(k)+'_c'
-            # im = axes[k,j]
             c = sim_output[partStr]
-            # A = [ np.array()]
             N = np.size(c[0])
             A = np.ones((int(N/4),N))
             A[:,:] = c[0]
+            axes[k,j].yaxis.set_visible(False)
             line = axes[k,j].imshow(A, cmap = 'jet', norm = norm, animated = True)
+            # cax = axes[k,j].inset_axes([1.04, 0.2, 0.05, 0.6], transform=axes[k,j].transAxes)
+            # axes[k,j].set_aspect('equal', 'box')
             lines[k,j] = line
-            # A[:,:] = c[0]
-            # print(A)
-            # # ax = axes[k,j]
-            # ax = axes
-            # im = plt.imshow(A, animated=True)
+    # fig.colorbar(line, ax = axes[:,-1].ravel().tolist(), shrink=0.6)
 
     def init():
         A[:,:] = c[50]
@@ -60,25 +55,12 @@ def plot_csld2D(resultDir_dic, save = False):
                 c = sim_output[partStr]
                 N = np.size(c[0])
                 A = np.ones((int(N/2),N))
-                toblit = []
-                # a=im.get_array()
-                # A = im.get_array()
                 A[:,:] = c[t]
-                # print(A)
-                # A[:,:] = np.reshape(c[t],N)
-                # a = A     
-                # lines.clear()
-                # im.contourf(range(N),range(N),A, cmap = 'jet', norm = norm)
-                # im.imshow(A, cmap = 'jet', norm = norm)
-                # print(k, ' ', j )
                 lines[k,j].set_data(A)
-                lines_local = lines.copy()
-                toblit.append(lines_local)
-                # im.set_array(A)S
         return [lines]
 
     anim = manim.FuncAnimation(fig, animate,
-                               frames=numtimes, interval=0.0001, 
+                               frames=numtimes, 
                                repeat = False, init_func= init)
     if save == False:
         plt.show()

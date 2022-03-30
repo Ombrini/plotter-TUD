@@ -2,12 +2,12 @@ import os.path as osp
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import os
 
 import mpet.mod_cell as mod_cell
 import mpet.geometry as geom
 import mpet.props_am as props_am
 import mpet.utils as utils
+from plot_utils import *
 
 from mpet.config import Config, constants
 from muFunc import *
@@ -44,16 +44,169 @@ def plot_activeParticles(resultDir_dic):
         avg_per_active_vec[:] = avg_per_active
 
         ax[0].plot(ffvec,percent_active,label = str(i[70:]))
-        ax[0].plot(ffvec, avg_per_active_vec)
         ax[0].set_xlabel('ffrac')
-        ax[0].set_ylabel("/%/ of active particles")
+        ax[0].set_ylabel(" %/ of active particles")
         ax[0].legend()
 
         ax[1].plot(times,percent_active,label = str(i[70:]))
         ax[1].plot(times, avg_per_active_vec)
         ax[1].set_xlabel('t')
-        ax[1].set_ylabel("/%/ of active particles")
+        ax[1].set_ylabel(" %/ of active particles")
         ax[1].legend()
+
+def active_atSoC(resultDir_dic,SoC):
+    Crate_vec = np.array([])
+    percent_vec = np.array([])
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        config = Config.from_dicts(i)
+        ffvec = sim_output['ffrac_c'][0]
+        td = config["t_ref"]
+        times = sim_output['phi_applied_times'][0]*td
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        tot_particles = Nvol_c*Npart_c
+
+        num_active_vec = np.array([])
+
+        for t in range(np.size(ffvec)):
+            num_active = 0
+            for k in range(Nvol_c):
+                for j in range(Npart_c):
+                        partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                        cbar = sim_output[partStr][0][t]
+                        if cbar > 0.15 and cbar < 0.85:
+                            num_active = num_active + 1
+
+            num_active_vec = np.append(num_active_vec,num_active)
+           
+        percent_active = (num_active_vec/tot_particles)*100
+        state_of_charge = int((SoC/100)*np.size(percent_active))
+        percent_at_soc = percent_active[state_of_charge]
+        Crate = get_C_rate(i)[0]
+        bulkcon = get_bulkCon(i, 'c')
+        Crate_vec = np.append(Crate_vec,Crate)
+        percent_vec = np.append(percent_vec,percent_at_soc)
+
+    plt.plot(Crate_vec, percent_vec, 'o', color = 'green')
+    plt.xlabel('Crate')
+    plt.ylabel("active particles at 50%")
+    plt.show()
+
+def active_max_vs_Crate(resultDir_dic):
+    Crate_vec = np.array([])
+    percent_vec = np.array([])
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        config = Config.from_dicts(i)
+        ffvec = sim_output['ffrac_c'][0]
+        td = config["t_ref"]
+        times = sim_output['phi_applied_times'][0]*td
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        tot_particles = Nvol_c*Npart_c
+
+        num_active_vec = np.array([])
+
+        for t in range(np.size(ffvec)):
+            num_active = 0
+            for k in range(Nvol_c):
+                for j in range(Npart_c):
+                        partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                        cbar = sim_output[partStr][0][t]
+                        if cbar > 0.15 and cbar < 0.85:
+                            num_active = num_active + 1
+
+            num_active_vec = np.append(num_active_vec,num_active)
+           
+        percent_active = (num_active_vec/tot_particles)*100
+        percent_max = np.max(percent_active)
+        Crate = get_C_rate(i)
+        bulkcon = get_bulkCon(i, 'c')
+        Crate_vec = np.append(Crate_vec,Crate)
+        percent_vec = np.append(percent_vec,percent_max)
+
+    plt.plot(Crate_vec, percent_vec, color = 'green')
+    plt.xlabel("Crate")
+    plt.ylabel("Max active particles")
+    plt.show()
+
+def active_max_vs_bulk(resultDir_dic):
+    bulk_vec = np.array([])
+    percent_vec = np.array([])
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        config = Config.from_dicts(i)
+        ffvec = sim_output['ffrac_c'][0]
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        tot_particles = Nvol_c*Npart_c
+
+        num_active_vec = np.array([])
+
+        for t in range(np.size(ffvec)):
+            num_active = 0
+            for k in range(Nvol_c):
+                for j in range(Npart_c):
+                        partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                        cbar = sim_output[partStr][0][t]
+                        if cbar > 0.15 and cbar < 0.85:
+                            num_active = num_active + 1
+
+            num_active_vec = np.append(num_active_vec,num_active)
+           
+        percent_active = (num_active_vec/tot_particles)*100
+        percent_max = np.max(percent_active)
+        # Crate = get_C_rate(i)
+        bulkcon = get_bulkCon(i, 'c')
+        bulk_vec = np.append(bulk_vec,bulkcon)
+        percent_vec = np.append(percent_vec,percent_max)
+
+    plt.plot(bulk_vec, percent_vec, color = 'green')
+    plt.xlabel("Electrical conductivity S/m")
+    plt.ylabel("Max active particles")
+    plt.show()
+
+def active_max_vs_thickness(resultDir_dic):
+    thick_vec = np.array([])
+    percent_vec = np.array([])
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        config = Config.from_dicts(i)
+        ffvec = sim_output['ffrac_c'][0]
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        tot_particles = Nvol_c*Npart_c
+        L_c = config["L"]["c"]*config['L_ref']*1e6
+
+        num_active_vec = np.array([])
+
+        for t in range(np.size(ffvec)):
+            num_active = 0
+            for k in range(Nvol_c):
+                for j in range(Npart_c):
+                        partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                        cbar = sim_output[partStr][0][t]
+                        if cbar > 0.15 and cbar < 0.85:
+                            num_active = num_active + 1
+
+            num_active_vec = np.append(num_active_vec,num_active)
+           
+        percent_active = (num_active_vec/tot_particles)*100
+        percent_max = np.max(percent_active)
+        thick_vec = np.append(thick_vec,L_c)
+        percent_vec = np.append(percent_vec,percent_max)
+
+    plt.plot(thick_vec, percent_vec, 'o', color = 'green')
+    plt.xlabel("Thickness um")
+    plt.ylabel("Max active particles")
+    plt.show()
+
+
 
 
 def plot_cVolume(resultDir_dic, SoC):

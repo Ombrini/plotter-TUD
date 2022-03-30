@@ -2,7 +2,7 @@ import os.path as osp
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
-import os
+
 
 import mpet.mod_cell as mod_cell
 import mpet.geometry as geom
@@ -57,16 +57,16 @@ def plot_voltage(resultDir_dic):
         max_V = np.append(max_V,np.amax(data_volt))
         min_V = np.append(min_V,np.amin(data_volt))
 
-        ax[0].plot(ffvec, data_volt, label=str(i[77:]))
+        ax[0].plot(ffvec, data_volt, label=str(i[50:]))
         ax[0].set_ylabel('Voltage (V)')
         ax[0].set_xlabel('SoC')
         ax[0].set_title('V vs SOC')
 
         ax[0].yaxis.set_major_formatter(FormatStrFormatter('%g'))
-        ax[0].yaxis.set_ticks(np.arange(np.amin(min_V),np.amax(max_V), 0.015))
+        # ax[0].yaxis.set_ticks(np.arange(np.amin(min_V-0.02),np.amax(max_V+0.02), 1e-3))
         ax[0].legend()
 
-        ax[1].plot(times, data_volt, label=str(i[77:]))
+        ax[1].plot(ffvec, data_volt, label=str(i[50:]))
         ax[1].set_ylabel('Voltage (V)')
         ax[1].set_xlabel('Time (s)')
         ax[1].set_title('V vs t')
