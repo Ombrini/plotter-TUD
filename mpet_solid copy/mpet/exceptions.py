@@ -1,2 +1,0 @@
-class UnknownParameterError(Exception):
-    pass
