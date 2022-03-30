@@ -1,5 +1,7 @@
 import os.path as osp
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.animation as manim
 import numpy as np
 import scipy.io as sio
 import os
@@ -11,6 +13,77 @@ import mpet.utils as utils
 from muFunc import *
 
 from mpet.config import Config, constants
+
+def plot_csld2D(resultDir_dic, save = False):
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
+    Nvol_c = config["Nvol"]['c']
+    Npart_c = config["Npart"]['c']
+
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=False)
+    # fig, im = plt.subplots(1,1, sharey=False)
+    # fig =  plt.figure()
+    norm = matplotlib.colors.Normalize(vmin = 0, vmax = 1)
+    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
+    sim_output = sio.loadmat(matfile)
+    td = config["t_ref"]
+    times = sim_output['phi_applied_times'][0]*td
+    numtimes = np.size(times)
+    ffvec = sim_output['ffrac_c'][0]
+    lines = np.empty((Npart_c, Nvol_c), dtype=object)
+
+    for k in range(Npart_c):
+        for j in range(Nvol_c):
+            partStr = 'partTrodecvol'+str(j)+'part'+str(k)+'_c'
+            # im = axes[k,j]
+            c = sim_output[partStr]
+            # A = [ np.array()]
+            N = np.size(c[0])
+            A = np.ones((int(N/4),N))
+            A[:,:] = c[0]
+            line = axes[k,j].imshow(A, cmap = 'jet', norm = norm, animated = True)
+            lines[k,j] = line
+            # A[:,:] = c[0]
+            # print(A)
+            # # ax = axes[k,j]
+            # ax = axes
+            # im = plt.imshow(A, animated=True)
+
+    def init():
+        A[:,:] = c[50]
+        lines[k,j].set_data(A)
+        return [lines]
+    
+    def animate(t):
+        for k in range(Npart_c):
+            for j in range(Nvol_c):
+                partStr = 'partTrodecvol'+str(j)+'part'+str(k)+'_c'
+                c = sim_output[partStr]
+                N = np.size(c[0])
+                A = np.ones((int(N/2),N))
+                toblit = []
+                # a=im.get_array()
+                # A = im.get_array()
+                A[:,:] = c[t]
+                # print(A)
+                # A[:,:] = np.reshape(c[t],N)
+                # a = A     
+                # lines.clear()
+                # im.contourf(range(N),range(N),A, cmap = 'jet', norm = norm)
+                # im.imshow(A, cmap = 'jet', norm = norm)
+                # print(k, ' ', j )
+                lines[k,j].set_data(A)
+                lines_local = lines.copy()
+                toblit.append(lines_local)
+                # im.set_array(A)S
+        return [lines]
+
+    anim = manim.FuncAnimation(fig, animate,
+                               frames=numtimes, interval=0.0001, 
+                               repeat = False, init_func= init)
+    if save == False:
+        plt.show()
+    elif save == True:
+        anim.save("csdl_c_animation.mp4", fps=25, bitrate=5500)
 
 def plot_c(resultDir_dic, num_pictures, volume):
 
@@ -80,9 +153,130 @@ def plot_c(resultDir_dic, num_pictures, volume):
 
     return sim_output
 
+def plot_c2D(resultDir_dic, num_pictures, volume):
+    norm = matplotlib.colors.Normalize(vmin = 0, vmax = 1)
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
+    Nvol_c = config["Nvol"]['c']
+    Npart_c = config["Npart"]['c']
+
+    H = Npart_c * 3
+    if H > 20:
+        H = 20
+    L = num_pictures * 3
+    if L > 20:
+        L = 20
+
+    # similarly to c_barLine, but the idea is to plot the c(x) for a selected reange of particles
+    # it is already possible to select the number of frames to plot
+    # the idea is to have also the possibility to plot in certain range of tim
+    fig, axes = plt.subplots(Npart_c,num_pictures, sharey=False, figsize=(10, 4))
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        td = config["t_ref"]
+        #times of the 0,0 particles are the same for all the particles
+        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times
+        ffvec = sim_output['ffrac_c'][0]
+        config = Config.from_dicts(i)
+
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+
+        tottimesteps = len(times)-1
+        timestep_vec = np.around(np.linspace(10,tottimesteps,num=num_pictures),0)
+        timestep_vec = timestep_vec.astype(np.int32)
+
+        if Npart_c == 1:
+            partStr = 'partTrodecvol'+str(volume)+'part0_c'
+            c = sim_output[partStr]
+            xaxis = np.arange(len(c[0]))
+            # fig, axes = plt.subplots(1,num_pictures, sharey=True, figsize=(10, 4))
+            j = 0
+            for t in timestep_vec:
+
+                c_of_t = c[t]
+
+                ax = axes[j]
+                ax.plot(xaxis, c_of_t, label='c')
+                ax.set_ylabel('c(x)')
+                ax.set_xlabel('x' + str(t))
+                j = j + 1
+
+        else:
+            for k in range(Npart_c):
+                partStr = 'partTrodecvol'+str(volume)+'part'+str(k)+'_c'
+                c = sim_output[partStr]
+                xaxis = np.arange(len(c[0]))
+                # fig, axes = plt.subplots(1,num_pictures, sharey=True, figsize=(10, 4))
+                j = 0
+                A = np.empty((np.size(c[0]),np.size(c[0])))
+                for t in timestep_vec:
+                    # A[:,:] = np.reshape(c[t],(1,np.size(c[t])))
+                    A[:,:] = c[t]
+                    ax = axes[k,j]
+                    ax.imshow(A,cmap = 'jet', norm = norm)
+                    # ax.set_ylabel('c(x)')
+                    # ax.set_xlabel('x' + str(t))
+                    j = j + 1
+
+    return sim_output
+
+# def plot_c2D_animate(resultDir_dic):
+#     config = Config.from_dicts(list(resultDir_dic.values())[0])
+#     Nvol_c = config["Nvol"]['c']
+#     Npart_c = config["Npart"]['c']
+
+#     # fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=False)
+#     # fig, axes = plt.subplots(1,1, sharey=False)
+#     fig =  plt.figure( figsize=(8,8) )
+
+#     matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
+#     sim_output = sio.loadmat(matfile)
+#     td = config["t_ref"]
+#     times = sim_output['phi_applied_times'][0]*td
+#     numtimes = np.size(times)
+#     ffvec = sim_output['ffrac_c'][0]
+
+#     # for k in range(Npart_c):
+#     #     for j in range(Nvol_c):
+#     partStr = 'partTrodecvol'+str(0)+'part'+str(0)+'_c'
+
+#     c = sim_output[partStr]
+
+#     N = np.size(c[0])
+#     A = np.ones((N,N))
+#     A[:,:] = np.reshape(c[0],N)
+#     figure = fig
+#     # ax = axes[k,j]
+#     # ax = axes
+#     im = plt.imshow(A)
+
+#     # def init():
+#     #     im.set_data(A)
+#     #     return [im]
+
+#     def animate(t):
+#         # a=im.get_array()
+#         A = im.get_array()
+#         A = A*np.reshape(c[t],N)
+#         # A[:,:] = np.reshape(c[t],N)
+#         # a = A
+#         im.set_array(A)
+#         return [im]
+
+#     anim = manim.FuncAnimation(figure, animate,
+#                     frames=numtimes, interval=5, blit=True, repeat=False)
+
+#     return anim
+
+    # anim.save('test_anim.mp4', fps=10, extra_args=['-vcodec', 'libx264'])
+
+
+
+
 def plot_Rxn(resultDir_dic, num_pictures, volume):
 
-    config = Config.from_dicts(resultDir_dic['sim1'])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 
@@ -157,7 +351,7 @@ def plot_Rxn(resultDir_dic, num_pictures, volume):
 
 def plot_mu(resultDir_dic, num_pictures, volume):
 
-    config = Config.from_dicts(resultDir_dic['sim1'])
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
     Nvol_c = config["Nvol"]['c']
     Npart_c = config["Npart"]['c']
 

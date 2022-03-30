@@ -1,5 +1,4 @@
 import os.path as osp
-from cv2 import threshold
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
@@ -13,24 +12,60 @@ import mpet.utils as utils
 from mpet.config import Config, constants
 from muFunc import *
 
-def plot_cVolume(resultDir_dic, SoC):
-    matfile = osp.join(list(resultDir_dic.values())[0], 'output_data.mat')
-    sim_output = sio.loadmat(matfile)
-    config = Config.from_dicts(list(resultDir_dic.values())[0])
-
-    
-
+def plot_activeParticles(resultDir_dic):
+    fig, ax = plt.subplots(1,2, sharey=True, figsize=(12, 6))
     for i in resultDir_dic.values():
-        L_c = config["L"]["c"]*config['L_ref']*1e6
         matfile = osp.join(i, 'output_data.mat')
         sim_output = sio.loadmat(matfile)
         config = Config.from_dicts(i)
+        ffvec = sim_output['ffrac_c'][0]
+        td = config["t_ref"]
+        times = sim_output['phi_applied_times'][0]*td
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        tot_particles = Nvol_c*Npart_c
+
+        num_active_vec = np.array([])
+
+        for t in range(np.size(ffvec)):
+            num_active = 0
+            for k in range(Nvol_c):
+                for j in range(Npart_c):
+                        partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                        cbar = sim_output[partStr][0][t]
+                        if cbar > 0.15 and cbar < 0.85:
+                            num_active = num_active + 1
+
+            num_active_vec = np.append(num_active_vec,num_active)
+           
+        percent_active = (num_active_vec/tot_particles)*100
+        avg_per_active = np.average(percent_active)
+        avg_per_active_vec = np.empty(len(percent_active))
+        avg_per_active_vec[:] = avg_per_active
+
+        ax[0].plot(ffvec,percent_active,label = str(i[70:]))
+        ax[0].plot(ffvec, avg_per_active_vec)
+        ax[0].set_xlabel('ffrac')
+        ax[0].set_ylabel("/%/ of active particles")
+        ax[0].legend()
+
+        ax[1].plot(times,percent_active,label = str(i[70:]))
+        ax[1].plot(times, avg_per_active_vec)
+        ax[1].set_xlabel('t')
+        ax[1].set_ylabel("/%/ of active particles")
+        ax[1].legend()
+
+
+def plot_cVolume(resultDir_dic, SoC):
+    for i in resultDir_dic.values():
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        config = Config.from_dicts(i)
+        L_c = config["L"]["c"]*config['L_ref']*1e6
         # td = config["t_ref"]
         ffvec = sim_output['ffrac_c'][0]
         Nvol_c = config["Nvol"]['c']
         Npart_c = config["Npart"]['c']
-        # thick = config["L_c"]
-        # print(thick)
         thick_vec = np.linspace(L_c,0,num=Nvol_c)
 
         index = 0
@@ -38,10 +73,6 @@ def plot_cVolume(resultDir_dic, SoC):
             index = index + 1
             if step > (SoC-0.05) and step < (SoC+0.05):
                 break
-
-
-        # times = sim_output['phi_applied_times'][0]*td
-        # ffvec = sim_output['ffrac_c'][0]
 
         c_avg_tot = np.array([])
         for k in range(Nvol_c):
@@ -56,13 +87,12 @@ def plot_cVolume(resultDir_dic, SoC):
         plt.xlabel('Cathode thickness (um)')
         plt.ylabel('Normalized concentration')
 
-
         fit = np.poly1d(np.polyfit(thick_vec,c_avg_tot,deg=2),r=False)
         x_fit = np.linspace(0,L_c,num = 20)
         y_fit = np.array([])
         for t in x_fit:
             y_fit = np.append(y_fit,fit(t))
-        plt.plot(x_fit,y_fit, label = str(i[77:])+' - '+'SoC: '+str(SoC))
+        plt.plot(x_fit,y_fit, label = str(i[50:])+' - '+'SoC: '+str(SoC))
         plt.legend()
 
             
@@ -171,28 +201,28 @@ def plot_Crate_singleparticle(resultDir_dic, xaxis, Cthreshold):
                 dcbardt = sim_output[partStr][0]
                 crate = dcbardt*3600/td
 
-                ax[j,k].plot(xax, crate, label=str(i))
+                # ax[j,k].plot(xax, crate, label=str(i[77:]) )
+                ax[j,k].plot(xax, crate, label=str(i[70:]) )
                 ax[j,k].set_ylabel('C-rate')
                 ax[j,k].set_xlabel(xlabel)
                 ax[j,k].set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
+                ax[j,k].legend()
 
-                active_Crate = np.array([])
-                index = 0
-                for c in crate:
-                    if c > Cthreshold:
-                        active_Crate = np.append(active_Crate,c)
-                avg_Crate = np.average(active_Crate)
-                for c in crate: #find position in x vec when the (de)lithiation start
-                    index = index + 1
-                    if c > Cthreshold:
-                        break
-                new_xax = np.linspace(xax[0],xax[-1],num=np.size(active_Crate))
-                avg_Crate_vec = np.array([])
-                for g in active_Crate:
-                    avg_Crate_vec = np.append(avg_Crate_vec,avg_Crate)
-                ax[j,k].plot(new_xax, avg_Crate_vec)
-
-            
+                # active_Crate = np.array([])
+                # index = 0
+                # for c in crate:
+                #     if c > Cthreshold:
+                #         active_Crate = np.append(active_Crate,c)
+                # avg_Crate = np.average(active_Crate)
+                # for c in crate: #find position in x vec when the (de)lithiation start
+                #     index = index + 1
+                #     if c > Cthreshold:
+                #         break
+                # new_xax = np.linspace(xax[0],xax[-1],num=np.size(active_Crate))
+                # avg_Crate_vec = np.array([])
+                # for g in active_Crate:
+                #     avg_Crate_vec = np.append(avg_Crate_vec,avg_Crate)
+                # ax[j,k].plot(new_xax, avg_Crate_vec, label=str(i[77:]))
     return sim_output
 
 def plot_mubar(resultDir_dic, xaxis):
