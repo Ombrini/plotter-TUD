@@ -19,11 +19,13 @@ class PoissonEq(daeModel):
         self.x = daeDomain("x", self,m, "x axis domain")
 
         self.D = daeParameter("D", (m**2)/s, self, "Diffusion coefficinet")
-        self.R = daeParameter("RT", J/mol,self, "Gas constant")
+        self.R = daeParameter("RT", (J/(mol*K)),self, "Gas constant")
         self.e = daeParameter("e", A*s,self, "electron charge" )
         self.eps = daeParameter("eps", F/m, self, "dielectric constant")
-        self.c0 = daeParameter("c0", mol*m**(-3), self, "initial concentration")
+        self.c0 = daeParameter("c0", mol*(m**(-3)), self, "initial concentration")
         self.phi0 = daeParameter("phi0", V, self, "potential at the wall")
+        self.Na = daeParameter("Na", mol**(-1), self, "avogadro's number")
+        self.T = daeParameter("T", K, self, "temperature")
 
         self.rho = daeVariable("rho", molar_concentration_t, self)
         self.rho.DistributeOnDomain(self.x)
@@ -40,32 +42,32 @@ class PoissonEq(daeModel):
         eq.CheckUnitsConsistency = False
         x = eq.DistributeOnDomain(self.x, eOpenOpen)
 
-        eq.Residual = dt(self.rho(x)) - self.D()*(d2(self.rho(x),self.x, eCFDM) - ((2*(self.e()**2)*self.c0())/(self.eps()*self.R()))*self.rho(x))
+        eq.Residual = dt(self.rho(x)) - self.D()*(d2(self.rho(x),self.x, eCFDM) + ((2*(self.e()**2)*self.c0()*self.Na()**2)/(self.eps()*self.R()*self.T()))*self.rho(x))
 
         eq = self.CreateEquation("PoissonEq", "Poisson equation")
-        eq.CheckUnitsConsistency = False
+        # eq.CheckUnitsConsistency = False
         x = eq.DistributeOnDomain(self.x, eOpenOpen)
 
-        eq.Residual = d2(self.psi(x),self.x, eCFDM) + (self.e()/self.eps())*self.rho(x)
+        eq.Residual = d2(self.psi(x),self.x, eCFDM) + (self.e()*self.Na()/self.eps())*self.rho(x)
 
 #         boundary conditions
         eq = self.CreateEquation("DirichBC1", "0 potential at x=0")
-        eq.CheckUnitsConsistency = False
+        # eq.CheckUnitsConsistency = False
         x = eq.DistributeOnDomain(self.x, eLowerBound)
         eq.Residual = self.psi(x)
 
         eq = self.CreateEquation("DirichBC2", "fixed potential at x=L")
-        eq.CheckUnitsConsistency = False
+        # eq.CheckUnitsConsistency = False
         x = eq.DistributeOnDomain(self.x, eUpperBound)
         eq.Residual = self.psi(x) + self.phi0()
 
         eq = self.CreateEquation("fluxCond0", "result from the 0 flux condition at x+L")
-        eq.CheckUnitsConsistency = False
+        # eq.CheckUnitsConsistency = False
         x = eq.DistributeOnDomain(self.x, eUpperBound)
-        eq.Residual = d(self.rho(x), self.x, eCFDM) + ((self.e()*self.c0())/(self.R()))*d(self.psi(x),self.x, eCFDM)
+        eq.Residual = d(self.rho(x), self.x, eCFDM) + ((self.e()*self.c0()*self.Na())/(self.R()*self.T()))*d(self.psi(x),self.x, eCFDM)
 
         eq = self.CreateEquation("chargeinBulk0", "0 charge in bulk elyte condition")
-        eq.CheckUnitsConsistency = False
+        # eq.CheckUnitsConsistency = False
         x = eq.DistributeOnDomain(self.x, eLowerBound)
         eq.Residual = self.rho(x)
 
@@ -76,23 +78,25 @@ class simPoissonEq(daeSimulation):
 
 
     def SetUpParametersAndDomains(self):
-        self.m.x.CreateStructuredGrid(10,0,1)
-        # print(self.m.x.NumberOfPoints)
+        self.m.x.CreateStructuredGrid(30,0,1)
+    
         # self.m.x.CreateDistributed(eCFDM,2,n,0,0.1)
         # self.m.x.CreateArray(10)
-#         self.m.x.Points = [x.value for x in range(30)]
-        # self.m.x.Points = [0, 1, 2, 3, 40, 41, 42, 43, 44, 45]
+        # self.m.x.Points = [x.value for x in range(30)]
 
-        self.m.e.SetValue(1.6e-19 *C)
+
+        self.m.e.SetValue(1.6e-19 *A*s)
         self.m.eps.SetValue(78.5*8.85e-12 *(F/m))
         self.m.D.SetValue( 1e-9 *((m**2)/s))
-        self.m.R.SetValue(8.314 *J/mol)
-        self.m.c0.SetValue(1* mol*(m**(-3)))
-        self.m.phi0.SetValue(-0.2*0.025 *V)
+        self.m.R.SetValue(8.314 *J/(mol*K))
+        self.m.c0.SetValue(0.1* mol*(m**(-3)))
+        self.m.phi0.SetValue(-0.01 *V)
+        self.m.Na.SetValue(6.02e23 * mol**(-1))
+        self.m.T.SetValue(298 * K)
 
     def SetUpVariables(self):
         for x in range(1,self.m.x.NumberOfPoints -1):
-            self.m.rho.SetInitialGuess(x,0.001 * mol*(m**(-3)))
+            self.m.rho.SetInitialGuess(x,0 * mol*(m**(-3)))
             self.m.psi.SetInitialCondition(x,0*V)
 
 
@@ -105,8 +109,8 @@ simulation = simPoissonEq()
 
 simulation.m.SetReportingOn(True)
 
-simulation.ReportingInterval = 10
-simulation.TimeHorizon = 500
+simulation.ReportingInterval = 30
+simulation.TimeHorizon = 1000
 
 datareporter.Connect("", "PoissonEq")
 
