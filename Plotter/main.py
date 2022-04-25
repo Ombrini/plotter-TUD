@@ -67,9 +67,11 @@ if __name__ == '__main__':
     file_name = 'ExportData_PFO_Li_LFP_170220222_1_SEE Rack 2_09_6_20220217165657.txt'
     mass = 16.4
 
-    plot_voltage(resultDir_dic)
+    # plot_voltage(resultDir_dic)
     # plot_experiments(file_name, mass)
-    plot_activeParticles(resultDir_dic)
+    # plot_activeParticles(resultDir_dic)
+    plot_csurf_vs_cbar(resultDir_dic)
+    plot_ecd_vs_cbar(resultDir_dic)
     # active_max_vs_Crate(resultDir_dic)
     # plt.show()
     # active_max_vs_bulk(resultDir_dic)
@@ -87,7 +89,7 @@ if __name__ == '__main__':
     # plot_mubar_singlePart(resultDir_dic,0,0)
     # plot_mubar_singlePart(resultDir_dic,0,0)
     # plot_mubar(resultDir_dic, 'ffrac') #all the mubars vs the cbar of the system
-    # plot_cbar(resultDir_dic, 'ffrac')
+    plot_cbar(resultDir_dic, 'ffrac')
     # plot_cbar(resultDir_dic, 'time')
     # plot_Crate_singleparticle(resultDir_dic, 'ffrac', 0.1)
     # plot_cVolume(resultDir_dic,0.5)

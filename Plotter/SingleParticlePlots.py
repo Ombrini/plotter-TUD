@@ -449,6 +449,131 @@ def plot_mubar(resultDir_dic, xaxis):
 
     return sim_output
 
+
+def plot_csurf_vs_cbar(resultDir_dic):
+
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
+    Nvol_c = config["Nvol"]['c']
+    Npart_c = config["Npart"]['c']
+
+    H = Npart_c * 3
+    if H > 20:
+        H = 20
+    L = 1 * 3
+    if L > 20:
+        L = 20
+
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4),squeeze=False)
+    for i in resultDir_dic.values():
+        resultDir = i
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        td = config["t_ref"]
+
+        #times of the 0,0 particles are the same for all the particles
+        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times
+        config = Config.from_dicts(i)
+
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+
+        tottimesteps = len(times)-1
+
+        for k in range(Nvol_c):
+            for j in range(Npart_c):
+
+                partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_c'
+                c = sim_output[partStr]
+      
+
+                partStr_bar = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                cbar = sim_output[partStr_bar][0]
+
+                csurf_vec = np.empty([0])
+                for t in range(tottimesteps+1):
+
+                    csurf = c[t][-1]
+                    cavg = cbar[t]
+                    csurf_vec = np.append(csurf_vec, (csurf-cavg))
+                ax = axes[j,k]
+
+                ax.plot(cbar, csurf_vec, label='_csurf')
+                ax.set_xlabel('cbar')
+                ax.set_ylabel('(c_surf - cvg)')
+                ax.set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
+
+
+    return sim_output
+
+
+def plot_ecd_vs_cbar(resultDir_dic):
+
+    config = Config.from_dicts(list(resultDir_dic.values())[0])
+    Nvol_c = config["Nvol"]['c']
+    Npart_c = config["Npart"]['c']
+
+    H = Npart_c * 3
+    if H > 20:
+        H = 20
+    L = 1 * 3
+    if L > 20:
+        L = 20
+
+    fig, axes = plt.subplots(Npart_c,Nvol_c, sharey=True, figsize=(10, 4),squeeze=False)
+    for i in resultDir_dic.values():
+        resultDir = i
+        matfile = osp.join(i, 'output_data.mat')
+        sim_output = sio.loadmat(matfile)
+        td = config["t_ref"]
+
+        #times of the 0,0 particles are the same for all the particles
+        times = sim_output['phi_applied_times'][0]*td #in mpet1.7 exist only phi_times
+        config = Config.from_dicts(i)
+
+        Nvol_c = config["Nvol"]['c']
+        Npart_c = config["Npart"]['c']
+        Omega_a = config["c","Omega_a"][0][0]
+        Omega_b = config["c","Omega_b"]
+        Choe = config["c","B"]
+
+        tottimesteps = len(times)
+
+        for k in range(Nvol_c):
+            for j in range(Npart_c):
+
+                partStr = 'partTrodecvol'+str(k)+'part'+str(j)+'_c'
+                c = sim_output[partStr]
+      
+
+                partStr_bar = 'partTrodecvol'+str(k)+'part'+str(j)+'_cbar'
+                cbar = sim_output[partStr_bar][0]
+
+
+                ecd_vec = np.empty([0])
+                for t in range(tottimesteps):
+
+                    csurf = c[t][-1]
+                    cavg = cbar[t]
+                    ecd1 = np.sqrt(csurf*(1-csurf))
+                    ecd2 = np.exp(0.5*(Omega_a*(1-2*csurf)))
+                    ecd3 = np.exp(0.5*(Omega_b*((1-2*csurf)**2-2*csurf*(1-csurf))))
+                    ecd4 = np.exp(0.5*Choe*(csurf-cavg))
+                    # ecd4 = 1
+    
+                    
+                    ecd = ecd1*ecd2*ecd3*ecd4
+                    ecd_vec = np.append(ecd_vec, ecd)
+                ax = axes[j,k]
+
+                ax.plot(cbar, ecd_vec, label='_csurf')
+                ax.set_xlabel('cbar')
+                ax.set_ylabel('ecd')
+                ax.set_title('volume: ' +str(k+1)+' particle: '+str(j+1))
+
+
+    return sim_output
+
+
 def plot_mubar_vs_cbar(resultDir_dic):
 
     config = Config.from_dicts(list(resultDir_dic.values())[0])
