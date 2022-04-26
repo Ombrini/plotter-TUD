@@ -45,6 +45,7 @@ from Voltage import *
 from plot_utils import *
 from SingleParticlePlots import *
 from TimeEvolution import *
+from cbar_c_gamma import *
 
 from colormaps import *
 from Plot_experiments import *
