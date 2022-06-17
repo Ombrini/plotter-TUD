@@ -1,4 +1,5 @@
 import os.path as osp
+from re import L
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
@@ -27,14 +28,13 @@ from matplotlib.ticker import FormatStrFormatter
 from mpet.config import Config, constants
 
 # this simply plots v vs ff and v vs t in folder 
-def plot_voltage(resultDir_dic):
+def plot_voltage(resultDir_dic, folder_string_len):
     k = constants.k                      # Boltzmann constant, J/(K Li)
     Tref = constants.T_ref               # Temp, K
     e = constants.e                      # Charge of proton, C
     # taking the mat file
-
-    #once a dictionary is created from the folder cotaing a certain set of simulations
-    #the function loop inside of it plotting all the graphs, one over the other 
+    # once a dictionary is created from the folder cotaing a certain set of simulations
+    # the function loop inside of it plotting all the graphs, one over the other 
     fig, ax = plt.subplots(1,2, sharey=True, figsize=(12, 6))
     max_V = np.array([])
     min_V = np.array([])
@@ -45,6 +45,7 @@ def plot_voltage(resultDir_dic):
         trodes = config["trodes"]
         td = config["t_ref"]
         # useful constants
+        labels = '$' + str(i[folder_string_len:]) + '$'
         
         Etheta = {"a": 0.}
         for trode in trodes:
@@ -57,7 +58,7 @@ def plot_voltage(resultDir_dic):
         max_V = np.append(max_V,np.amax(data_volt))
         min_V = np.append(min_V,np.amin(data_volt))
 
-        ax[0].plot(ffvec, data_volt, label=str(i[50:]))
+        ax[0].plot(ffvec, data_volt, label=labels)
         ax[0].set_ylabel('Voltage (V)')
         ax[0].set_xlabel('SoC')
         ax[0].set_title('V vs SOC')
@@ -66,7 +67,7 @@ def plot_voltage(resultDir_dic):
         # ax[0].yaxis.set_ticks(np.arange(np.amin(min_V-0.02),np.amax(max_V+0.02), 1e-3))
         ax[0].legend()
 
-        ax[1].plot(ffvec, data_volt, label=str(i[50:]))
+        ax[1].plot(times, data_volt, label=labels)
         ax[1].set_ylabel('Voltage (V)')
         ax[1].set_xlabel('Time (s)')
         ax[1].set_title('V vs t')

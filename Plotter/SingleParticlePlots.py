@@ -12,7 +12,7 @@ from plot_utils import *
 from mpet.config import Config, constants
 from muFunc import *
 
-def plot_activeParticles(resultDir_dic):
+def plot_activeParticles(resultDir_dic, folder_string_len):
     fig, ax = plt.subplots(1,2, sharey=True, figsize=(12, 6))
     for i in resultDir_dic.values():
         matfile = osp.join(i, 'output_data.mat')
@@ -26,7 +26,7 @@ def plot_activeParticles(resultDir_dic):
         tot_particles = Nvol_c*Npart_c
 
         num_active_vec = np.array([])
-
+        labels = '$' + str(i[folder_string_len:]) + '$'
         for t in range(np.size(ffvec)):
             num_active = 0
             for k in range(Nvol_c):
@@ -43,12 +43,12 @@ def plot_activeParticles(resultDir_dic):
         avg_per_active_vec = np.empty(len(percent_active))
         avg_per_active_vec[:] = avg_per_active
 
-        ax[0].plot(ffvec,percent_active,label = str(i[70:]))
+        ax[0].plot(ffvec,percent_active,label = labels)
         ax[0].set_xlabel('ffrac')
         ax[0].set_ylabel(" %/ of active particles")
         ax[0].legend()
 
-        ax[1].plot(times,percent_active,label = str(i[70:]))
+        ax[1].plot(times,percent_active,label = labels)
         ax[1].plot(times, avg_per_active_vec)
         ax[1].set_xlabel('t')
         ax[1].set_ylabel(" %/ of active particles")
