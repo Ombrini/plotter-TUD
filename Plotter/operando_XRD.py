@@ -72,12 +72,13 @@ def plot_xrd_smooth(resultDir_dic, folder_string_len):
         
         Nvol_c = config["Nvol"]['c']
         Npart_c = config["Npart"]['c']
-        bins = np.arange(start=0,stop=1,step= 0.01)
+        bins = np.arange(start=0,stop=1,step= 0.02)
         xrd_matrix = np.empty([np.size(times),(np.size(bins)-1)*2])
         for t in np.arange(np.size(times)):
         # for t in [int(np.size(times)/2)]:
             # conc_vec_at_t = np.array([])
             tot_xrd_at_time_t = np.zeros((np.size(bins)-1)*2)
+            std_dev = np.size(bins)/20
             for i in np.arange(Nvol_c):
                 for j in np.arange(Npart_c):
                     if config["c","type"] == "ACR2":
@@ -88,12 +89,22 @@ def plot_xrd_smooth(resultDir_dic, folder_string_len):
                         c_of_t = (c1*stech_1+c2*(1-stech_1))
                         c_hist_part, bin_edg_part = np.histogram(c_of_t, bins=bins, density=True)
                         f_of_c = np.zeros(np.size(c_hist_part)*2)
-                        # print(f_of_c)
                         x = np.linspace(-np.size(c_hist_part)/2,1.5*np.size(c_hist_part),num = np.size(c_hist_part)*2)
-                        # print(x)
                         for h in np.arange(np.size(c_hist_part)):
                             f_of_h = c_hist_part[h]
-                            f_of_ch = f_of_h*np.exp(-0.5*((x - h)/10)**2)
+                            f_of_ch = f_of_h*np.exp(-0.5*((x - h)/std_dev)**2)
+                            f_of_c = f_of_c + f_of_ch
+                        tot_xrd_at_time_t = tot_xrd_at_time_t + f_of_c
+                    elif config["c","type"] == "CHR":
+                        partStr = 'partTrodecvol'+str(i)+'part'+str(j)+'_c'
+                        c = sim_output[partStr][t]
+                        c_of_t = c
+                        c_hist_part, bin_edg_part = np.histogram(c_of_t, bins=bins, density=True)
+                        f_of_c = np.zeros(np.size(c_hist_part)*2)
+                        x = np.linspace(-np.size(c_hist_part)/2,1.5*np.size(c_hist_part),num = np.size(c_hist_part)*2)
+                        for h in np.arange(np.size(c_hist_part)):
+                            f_of_h = c_hist_part[h]
+                            f_of_ch = f_of_h*np.exp(-0.5*((x - h)/std_dev)**2)
                             f_of_c = f_of_c + f_of_ch
                         tot_xrd_at_time_t = tot_xrd_at_time_t + f_of_c
                     else:
@@ -107,7 +118,7 @@ def plot_xrd_smooth(resultDir_dic, folder_string_len):
                         # print(x)
                         for h in np.arange(np.size(c_hist_part)):
                             f_of_h = c_hist_part[h]
-                            f_of_ch = f_of_h*np.exp(-0.5*((x - h)/10)**2)
+                            f_of_ch = f_of_h*np.exp(-0.5*((x - h)/std_dev)**2)
                             f_of_c = f_of_c + f_of_ch
                         tot_xrd_at_time_t = tot_xrd_at_time_t + f_of_c
                     # conc_vec_at_t = np.append(conc_vec_at_t, c_of_t)
