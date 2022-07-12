@@ -49,7 +49,7 @@ def plot_activeParticles(resultDir_dic, folder_string_len):
         ax[0].legend()
 
         ax[1].plot(times,percent_active,label = labels)
-        ax[1].plot(times, avg_per_active_vec)
+        # ax[1].plot(times, avg_per_active_vec)
         ax[1].set_xlabel('t')
         ax[1].set_ylabel(" %/ of active particles")
         ax[1].legend()

@@ -22,14 +22,13 @@
 
 
 
-import imp
+
 import os.path as osp
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as manim
 from matplotlib.animation import writers
 import numpy as np
-import scipy.io as sio
+
 import os
 import sys
 
@@ -46,6 +45,7 @@ from plot_utils import *
 from SingleParticlePlots import *
 from TimeEvolution import *
 from cbar_c_gamma import *
+from operando_XRD import * 
 
 from colormaps import *
 from Plot_experiments import *
@@ -65,12 +65,14 @@ if __name__ == '__main__':
     for sim in simulations:
         resultDir_dic[sim] = os.path.join(simulation_folder, sim)
 
-    file_name = 'ExportData_PFO_Li_LFP_170220222_1_SEE Rack 2_09_6_20220217165657.txt'
+    # file_name = 'ExportData_PFO_Li_LFP_170220222_1_SEE Rack 2_09_6_20220217165657.txt'
     mass = 16.4
 
-    plot_voltage(resultDir_dic, folder_string_len)
+    # plot_voltage(resultDir_dic, folder_string_len)
+    # plot_xrd(resultDir_dic, folder_string_len)
+    plot_xrd_smooth(resultDir_dic, folder_string_len)
     # plot_experiments(file_name, mass)
-    plot_activeParticles(resultDir_dic, folder_string_len)
+    # plot_activeParticles(resultDir_dic, folder_string_len)
     # plot_csurf_vs_cbar(resultDir_dic)
     # plot_ecd_vs_cbar(resultDir_dic)
     # active_max_vs_Crate(resultDir_dic)
@@ -79,8 +81,6 @@ if __name__ == '__main__':
     # active_max_vs_thickness(resultDir_dic)
     # plot_MaxActivePart_vsCrate_and_bulk(resultDir_dic)
     # plot_MaxActivePart_vsCrate_1Dplot(resultDir_dic)
-    # active_atSoC(resultDir_dic, 50)
-    # active_atSoC(resultDir_dic, 50)
     # active_atSoC(resultDir_dic, 50)
     # plt.show()
     # plot_csld2D(resultDir_dic, save = False, directory= 0)
@@ -95,8 +95,6 @@ if __name__ == '__main__':
     # plot_Crate_singleparticle(resultDir_dic, 'ffrac', 0.1)
     # plot_cVolume(resultDir_dic,0.5)
     # plot_Vmax_vs_Thick(resultDir_dic,'Vvsb')
-    # plot_cVolume(resultDir_dic,0.5)
-    # plot_cVolume(resultDir_dic,0.9)
     # elyte_c(resultDir_dic,5)
     # elyte_phi(resultDir_dic,5)
 

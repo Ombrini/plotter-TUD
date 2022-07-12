@@ -53,6 +53,7 @@ def plot_voltage(resultDir_dic, folder_string_len):
 
         data_volt = Etheta["c"] - Etheta["a"] - (k*Tref/e)*sim_output['phi_cell'][0]
         ffvec = sim_output['ffrac_c'][0]
+        ffvec = sim_output['ffrac_c'][0] #+ 1 - np.max(ffvec)
         times = sim_output['phi_applied_times'][0]*td
 
         max_V = np.append(max_V,np.amax(data_volt))
@@ -60,20 +61,26 @@ def plot_voltage(resultDir_dic, folder_string_len):
 
         ax[0].plot(ffvec, data_volt, label=labels)
         ax[0].set_ylabel('Voltage (V)')
-        ax[0].set_xlabel('SoC')
-        ax[0].set_title('V vs SOC')
+        ax[0].set_xlabel('DoD')
+        ax[0].set_title('V vs DoD')
 
-        ax[0].yaxis.set_major_formatter(FormatStrFormatter('%g'))
-        # ax[0].yaxis.set_ticks(np.arange(np.amin(min_V-0.02),np.amax(max_V+0.02), 1e-3))
+        # ax[0].yaxis.set_major_formatter(FormatStrFormatter('%g'))
+        # ax[0].yaxis.set_ticks(np.arange(4.5,2.5,0.1))
+        # ax[0].yaxis.set_ticks_position('left')
+        # ax[0].set_ylim([2.5,4.5])
+        # ax[0].set_xlim([1,0])
         ax[0].legend()
 
         ax[1].plot(times, data_volt, label=labels)
         ax[1].set_ylabel('Voltage (V)')
         ax[1].set_xlabel('Time (s)')
         ax[1].set_title('V vs t')
-        # ax[1].legend()
+        # ax[1].yaxis.set_ticks(np.arange(4.5,2.5,0.1))
+        # ax[1].yaxis.set_ticks_position('left')
+        ax[1].legend()
         # ax[1].yaxis.set_major_formatter(FormatStrFormatter('%g'))
         # ax[1].yaxis.set_ticks(np.arange(3, 4, 0.05))
+        # plt.savefig("employee_growth_tp.png", transparent=True)
 
     return sim_output
 
